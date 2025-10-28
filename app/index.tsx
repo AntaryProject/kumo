@@ -1,34 +1,52 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect } from 'react';
+import { Redirect } from 'expo-router';
+import { View, Text, StyleSheet } from 'react-native';
+import { useAuthStore } from '../store/auth';
+import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { AppErrorBoundary } from '../components/ErrorBoundary';
+import { useNotificationSetup } from '../hooks/useNotificationSetup';
 
-export default function Page() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.main}>
-        <Text style={styles.title}>Hello World</Text>
-        <Text style={styles.subtitle}>This is the first page of your app.</Text>
+function AppContent() {
+  const { user, loading, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Cargando...</Text>
       </View>
-    </View>
+    );
+  }
+
+  if (user) {
+    return <Redirect href="/(tabs)/chat" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
+}
+
+export default function Index() {
+  useNotificationSetup();
+
+  return (
+    <AppErrorBoundary>
+      <AppContent />
+    </AppErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
   },
-  main: {
-    flex: 1,
-    justifyContent: "center",
-    maxWidth: 960,
-    marginHorizontal: "auto",
-  },
-  title: {
-    fontSize: 64,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    fontSize: 36,
-    color: "#38434D",
+  loadingText: {
+    fontSize: FONT_SIZES.lg,
+    color: COLORS.textSecondary,
   },
 });
